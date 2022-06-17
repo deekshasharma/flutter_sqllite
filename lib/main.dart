@@ -4,26 +4,28 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:flutter_sqllite/dog.dart';
 
+const databaseName = 'doggie_database.db';
+const tableName = 'dogs';
+const createTableQuery = 'CREATE TABLE dogs(id INTEGER PRIMARY KEY, name TEXT, age INTEGER)';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final database =
-      openDatabase(join(await getDatabasesPath(), 'doggie_database.db'),
+      openDatabase(join(await getDatabasesPath(), databaseName),
           onCreate: (db, version) {
-    return db.execute(
-        'CREATE TABLE dogs(id INTEGER PRIMARY KEY, name TEXT, age INTEGER)');
+    return db.execute(createTableQuery);
   }, version: 1);
 
   //Insert a dog in the database
   Future<void> insertDog(Dog dog) async {
     final db = await database;
-    await db.insert('dogs', dog.toMap(),
+    await db.insert(tableName, dog.toMap(),
         conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   //Retrieve a list of dogs from the database
   Future<List<Dog>> dogs() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('dogs');
+    final List<Map<String, dynamic>> maps = await db.query(tableName);
     return List.generate(
         maps.length,
         (i) =>
@@ -34,7 +36,7 @@ void main() async {
   Future<void> updateDog(Dog dog) async {
     final db = await database;
 
-    await db.update('dogs', dog.toMap(), where: 'id = ?', whereArgs: [dog.id]);
+    await db.update(tableName, dog.toMap(), where: 'id = ?', whereArgs: [dog.id]);
   }
 
   //Delete a given dog from the database
@@ -60,6 +62,4 @@ void main() async {
   //Calling delete operation
   await deleteDog(0);
   print(await (dogs()));
-
-
 }
